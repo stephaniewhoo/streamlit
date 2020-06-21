@@ -1,1 +1,1 @@
-streamlit==0.61.0
+web: sh setup.sh && streamlit run temporal_analysis.py
