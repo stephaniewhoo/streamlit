@@ -9,13 +9,13 @@ read_and_cache_csv = st.cache(pd.read_csv)
 
 @st.cache
 def load_all():
-    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/date_05_26_df_counts.csv"
+    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/categorized_cord19.csv"
     df = pd.read_csv(df_url, error_bad_lines=False)
     df['publish_date'] = pd.to_datetime(df['publish_date'])
     return df
 
 def load():
-    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/date_05_26_df_counts.csv"
+    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/categorized_cord19.csv"
     df_only_month = pd.read_csv(df_url, error_bad_lines=False)
     df_only_month = df_only_month.loc[df_only_month['publish_date'].str.len() > 4]
     df_only_month['publish_date'] = pd.to_datetime(df_only_month['publish_date'])
@@ -35,7 +35,7 @@ if (granularity == 'Yearly'):
     st.subheader('Number of published documents in each year')
     start_year, end_year = st.slider("Select year Range:", 1870, 2021, (2003, 2020), 1)
     df_yearly = df.loc[(df['publish_date'].dt.year >= start_year) & (df['publish_date'].dt.year <= end_year)]
-    df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['counts'].agg('sum').reset_index('publish_date')
+    df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
     df_yearly = df_yearly.set_index('publish_date')
     st.bar_chart(df_yearly)
@@ -50,7 +50,7 @@ if (granularity == 'Monthly'):
     st.text(f"From: {start_month:%Y}-{start_month:%m} to {end_month:%Y}-{end_month:%m} ")
     df_monthly = df_only_month.loc[df_only_month['publish_date'].dt.date >= start_month]
     df_monthly = df_monthly.loc[df_monthly['publish_date'].dt.date <= end_month]
-    df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['counts'].agg('sum').reset_index('publish_date')
+    df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     df_monthly = df_monthly.set_index('publish_date')
     st.bar_chart(df_monthly)
 
@@ -64,7 +64,7 @@ if (granularity == 'Weekly'):
     st.text(f"From: {start_week:%Y}-{start_week:%m} to {end_week:%Y}-{end_week:%m} ")
     df_weekly = df_only_month.loc[df_only_month['publish_date'].dt.date >= start_week]
     df_weekly = df_weekly.loc[df_weekly['publish_date'].dt.date <= end_week]
-    df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['counts'].agg('sum').reset_index('publish_date')
+    df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     df_weekly = df_weekly.set_index('publish_date')
     st.bar_chart(df_weekly)
 
