@@ -31,6 +31,15 @@ granularity = st.selectbox(
     ("Yearly", "Monthly", "Weekly", "Daily")
 )
 
+peer_reviewed = st.checkbox('peer_reviewed')
+ABM = st.checkbox('ArXiv/BioRxiv/MedExiv')
+
+def selected_df(df_new, df_old):
+    if (peer_reviewed):
+        df_new['peer_reviewed'] = df_old['peer_reviewed']
+    if (ABM):
+        df_new['ArXiv/BioRxiv/MedExiv'] = df_old['ArXiv/BioRxiv/MedExiv']
+
 if (granularity == 'Yearly'):
     st.subheader('Number of published documents in each year')
     start_year, end_year = st.slider("Select year Range:", 1870, 2021, (2003, 2020), 1)
@@ -38,7 +47,9 @@ if (granularity == 'Yearly'):
     df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
     df_yearly = df_yearly.set_index('publish_date')
-    st.bar_chart(df_yearly)
+    df_d_yearly = pd.DataFrame(index=df_yearly.index)
+    selected_df(df_d_yearly, df_yearly)
+    st.bar_chart(df_d_yearly)
 
 if (granularity == 'Monthly'):
     st.subheader('Number of published documents in monthly granularity')
@@ -52,7 +63,9 @@ if (granularity == 'Monthly'):
     df_monthly = df_monthly.loc[df_monthly['publish_date'].dt.date <= end_month]
     df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     df_monthly = df_monthly.set_index('publish_date')
-    st.bar_chart(df_monthly)
+    df_d_monthly = pd.DataFrame(index=df_monthly.index)
+    selected_df(df_d_monthly, df_monthly)
+    st.bar_chart(df_d_monthly)
 
 if (granularity == 'Weekly'):
     st.subheader('Number of published documents in weekly granularity')
@@ -66,7 +79,9 @@ if (granularity == 'Weekly'):
     df_weekly = df_weekly.loc[df_weekly['publish_date'].dt.date <= end_week]
     df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     df_weekly = df_weekly.set_index('publish_date')
-    st.bar_chart(df_weekly)
+    df_d_weekly = pd.DataFrame(index=df_weekly.index)
+    selected_df(df_d_weekly, df_weekly)
+    st.bar_chart(df_d_weekly)
 
 if (granularity == 'Daily'):
     st.subheader('Number of published documents in daily granularity')
@@ -79,7 +94,9 @@ if (granularity == 'Daily'):
     df_daily = df_only_month.loc[df_only_month['publish_date'].dt.date >= start_day]
     df_daily = df_daily.loc[df_daily['publish_date'].dt.date <= end_day]
     df_daily = df_daily.set_index('publish_date')
-    st.bar_chart(df_daily)
+    df_d_daily = pd.DataFrame(index=df_daily.index)
+    selected_df(df_d_daily, df_daily)
+    st.bar_chart(df_d_daily)
 
 
 
