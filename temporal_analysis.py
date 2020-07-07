@@ -37,8 +37,6 @@ if (granularity == 'Yearly'):
     df_yearly = df.loc[(df['publish_date'].dt.year >= start_year) & (df['publish_date'].dt.year <= end_year)]
     df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['counts'].agg('sum').reset_index('publish_date')
     df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
-    df_yearly.plot.bar(x='publish_date', y='counts', width=0.9, figsize=(12, 8))
-    st.pyplot()
     df_yearly = df_yearly.set_index('publish_date')
     st.bar_chart(df_yearly)
 
