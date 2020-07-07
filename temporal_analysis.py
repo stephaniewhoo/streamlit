@@ -9,13 +9,13 @@ read_and_cache_csv = st.cache(pd.read_csv)
 
 @st.cache
 def load_all():
-    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/categorized_cord19.csv"
+    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/categorized_cord19_07_05.csv"
     df = pd.read_csv(df_url, error_bad_lines=False)
     df['publish_date'] = pd.to_datetime(df['publish_date'])
     return df
 
 def load():
-    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/categorized_cord19.csv"
+    df_url = "https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/categorized_cord19_07_05.csv"
     df_only_month = pd.read_csv(df_url, error_bad_lines=False)
     df_only_month = df_only_month.loc[df_only_month['publish_date'].str.len() > 4]
     df_only_month['publish_date'] = pd.to_datetime(df_only_month['publish_date'])
