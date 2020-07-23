@@ -57,7 +57,8 @@ elif (cat == 'area'):
     wuhan = st.checkbox('Wuhan', value=True)
     italy = st.checkbox('Italy', value=True)
     china = st.checkbox('China', value=True)
-    usa = st.checkbox('USA', value=True)
+    ca = st.checkbox('California', value=True)
+    ny = st.checkbox('New York', value=True)
 
 def selected_df(df_new, df_old):
     if (cat == 'Peer reviewed/not'):
@@ -72,8 +73,10 @@ def selected_df(df_new, df_old):
             df_new['Italy'] = df_old['Italy']
         if (china):
             df_new['China'] = df_old['China']
-        if (usa):
-            df_new['USA'] = df_old['USA']
+        if (ca):
+            df_new['California'] = df_old['California']
+        if (ny):
+            df_new['New York'] = df_old['New York']
 
 if (granularity == 'Yearly'):
     st.subheader('Number of published documents in each year')
@@ -82,11 +85,11 @@ if (granularity == 'Yearly'):
         df_yearly = df.loc[(df['publish_date'].dt.year >= start_year) & (df['publish_date'].dt.year <= end_year)]
     else:
         start_year, end_year = st.slider("Select year Range:", 1992, 2021, (2003, 2020), 1)
-        df_yearly = df_a.loc[(df['publish_date'].dt.year >= start_year) & (df['publish_date'].dt.year <= end_year)]
+        df_yearly = df_a.loc[(df_a['publish_date'].dt.year >= start_year) & (df_a['publish_date'].dt.year <= end_year)]
     if (cat == 'Peer reviewed/not'):
         df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     else:
-        df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['Wuhan', 'Italy','China','USA'].agg('sum').reset_index('publish_date')
+        df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['Wuhan', 'Italy','China','California','New York'].agg('sum').reset_index('publish_date')
     df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
     df_yearly = df_yearly.set_index('publish_date')
     df_d_yearly = pd.DataFrame(index=df_yearly.index)
@@ -110,7 +113,7 @@ if (granularity == 'Monthly'):
     else:
         df_monthly = df_ao.loc[df_ao['publish_date'].dt.date >= start_month]
         df_monthly = df_monthly.loc[df_monthly['publish_date'].dt.date <= end_month]
-        df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Wuhan', 'Italy', 'China', 'USA'].agg('sum').reset_index('publish_date')
+        df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Wuhan', 'Italy', 'China', 'California','New York'].agg('sum').reset_index('publish_date')
 
     df_monthly = df_monthly.set_index('publish_date')
     df_d_monthly = pd.DataFrame(index=df_monthly.index)
@@ -134,7 +137,7 @@ if (granularity == 'Weekly'):
     else:
         df_weekly = df_ao.loc[df_ao['publish_date'].dt.date >= start_week]
         df_weekly = df_weekly.loc[df_weekly['publish_date'].dt.date <= end_week]
-        df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Wuhan', 'Italy', 'China', 'USA'].agg(
+        df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Wuhan', 'Italy', 'China', 'California','New York'].agg(
             'sum').reset_index('publish_date')
 
     df_weekly = df_weekly.set_index('publish_date')
