@@ -41,24 +41,34 @@ df_a = load_area()
 df_ao = load_area_only()
 data_load_state.text("Done!")
 
-cat = st.sidebar.selectbox("Which category standard you would like to see?",
+cat = st.sidebar.selectbox('Which category standard you would like to see?',
                            ('Peer reviewed/not', 'area')
                            )
 
 granularity = st.selectbox(
-    "What granularity you would like to see",
+    'What granularity you would like to see?',
     ("Yearly", "Monthly", "Weekly", "Daily")
+    )
+
+if(cat == 'area'):
+    ac = st.selectbox(
+        "Do you want to see in area or country granularity?",
+        ('area','country')
     )
 
 if (cat =='Peer reviewed/not' ):
     peer_reviewed = st.checkbox('peer_reviewed', value=True)
     ABM = st.checkbox('ArXiv/BioRxiv/MedExiv')
 elif (cat == 'area'):
-    wuhan = st.checkbox('Wuhan', value=True)
-    italy = st.checkbox('Italy', value=True)
-    china = st.checkbox('China', value=True)
-    ca = st.checkbox('California', value=True)
-    ny = st.checkbox('New York', value=True)
+    if (ac == 'area'):
+        wuhan = st.checkbox('Wuhan', value=True)
+        italy = st.checkbox('Italy', value=True)
+        ca = st.checkbox('California', value=True)
+        ny = st.checkbox('New York', value=True)
+    elif(ac == 'country'):
+        italy = st.checkbox('Italy', value=True)
+        china = st.checkbox('China', value=True)
+        usa = st.checkbox('USA', value=True)
 
 def selected_df(df_new, df_old):
     if (cat == 'Peer reviewed/not'):
@@ -67,16 +77,22 @@ def selected_df(df_new, df_old):
         if (ABM):
             df_new['ArXiv/BioRxiv/MedExiv'] = df_old['ArXiv/BioRxiv/MedExiv']
     elif (cat == 'area'):
-        if (wuhan):
-            df_new['Wuhan'] = df_old['Wuhan']
-        if (italy):
-            df_new['Italy'] = df_old['Italy']
-        if (china):
-            df_new['China'] = df_old['China']
-        if (ca):
-            df_new['California'] = df_old['California']
-        if (ny):
-            df_new['New York'] = df_old['New York']
+        if (ac == 'area'):
+            if (wuhan):
+                df_new['Wuhan'] = df_old['Wuhan']
+            if (italy):
+                df_new['Italy'] = df_old['Italy']
+            if (ca):
+                df_new['California'] = df_old['California']
+            if (ny):
+                df_new['New York'] = df_old['New York']
+        elif (ac == 'country'):
+            if(china):
+                df_new['China'] = df_old['China_all']
+            if (italy):
+                df_new['Italy'] = df_old['Italy']
+            if(usa):
+                df_new['USA'] = df_old['USA']
 
 if (granularity == 'Yearly'):
     st.subheader('Number of published documents in each year')
@@ -89,7 +105,7 @@ if (granularity == 'Yearly'):
     if (cat == 'Peer reviewed/not'):
         df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
     else:
-        df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['Wuhan', 'Italy','China','California','New York'].agg('sum').reset_index('publish_date')
+        df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['Wuhan', 'Italy','China','California','New York','China_all','USA'].agg('sum').reset_index('publish_date')
     df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
     df_yearly = df_yearly.set_index('publish_date')
     df_d_yearly = pd.DataFrame(index=df_yearly.index)
@@ -113,7 +129,7 @@ if (granularity == 'Monthly'):
     else:
         df_monthly = df_ao.loc[df_ao['publish_date'].dt.date >= start_month]
         df_monthly = df_monthly.loc[df_monthly['publish_date'].dt.date <= end_month]
-        df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Wuhan', 'Italy', 'China', 'California','New York'].agg('sum').reset_index('publish_date')
+        df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Wuhan', 'Italy', 'China', 'California','New York','China_all','USA'].agg('sum').reset_index('publish_date')
 
     df_monthly = df_monthly.set_index('publish_date')
     df_d_monthly = pd.DataFrame(index=df_monthly.index)
@@ -137,7 +153,7 @@ if (granularity == 'Weekly'):
     else:
         df_weekly = df_ao.loc[df_ao['publish_date'].dt.date >= start_week]
         df_weekly = df_weekly.loc[df_weekly['publish_date'].dt.date <= end_week]
-        df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Wuhan', 'Italy', 'China', 'California','New York'].agg(
+        df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Wuhan', 'Italy', 'China', 'California','New York','China_all','USA'].agg(
             'sum').reset_index('publish_date')
 
     df_weekly = df_weekly.set_index('publish_date')
