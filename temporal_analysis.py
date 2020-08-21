@@ -23,14 +23,14 @@ def load():
     df_only_month['publish_date'] = pd.to_datetime(df_only_month['publish_date'])
     return df_only_month
 
-def load_area():
-    dfa_url = 'https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/area_cord19.csv'
+def load_country():
+    dfa_url = 'https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/country_cord19.csv'
     df_a = pd.read_csv(dfa_url, error_bad_lines=False)
     df_a['publish_date'] = pd.to_datetime(df_a['publish_date'])
     return df_a
 
-def load_area_only():
-    dfa_url = 'https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/area_cord19.csv'
+def load_country_only():
+    dfa_url = 'https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/country_cord19.csv'
     df_ao = pd.read_csv(dfa_url, error_bad_lines=False)
     df_ao = df_ao.loc[df_ao['publish_date'].str.len() > 4]
     df_ao['publish_date'] = pd.to_datetime(df_ao['publish_date'])
@@ -43,8 +43,8 @@ def load_length():
 
 df = load_all()
 df_only_month = load()
-df_a = load_area()
-df_ao = load_area_only()
+df_a = load_country()
+df_ao = load_country_only()
 df_l = load_length()
 
 lt = st.sidebar.selectbox('Do you want to see temporal analysis or length outlier analysis?',
@@ -79,7 +79,8 @@ if (lt == 'temporal analysis'):
         elif(ac == 'country'):
             italy = st.checkbox('Italy', value=True)
             china = st.checkbox('China', value=True)
-            usa = st.checkbox('USA', value=True)
+            usa = st.checkbox('US', value=True)
+            ca = st.checkbox('Canada', value=True)
 
 def selected_df(df_new, df_old):
     if (cat == 'Peer reviewed/not'):
@@ -99,11 +100,13 @@ def selected_df(df_new, df_old):
                 df_new['New York'] = df_old['New York']
         elif (ac == 'country'):
             if(china):
-                df_new['China'] = df_old['China_all']
+                df_new['China'] = df_old['China']
             if (italy):
                 df_new['Italy'] = df_old['Italy']
             if(usa):
-                df_new['USA'] = df_old['USA']
+                df_new['US'] = df_old['US']
+            if(ca):
+                df_new['Canada'] = df_old['Canada']
 
 if(lt =='temporal analysis'):
     if (granularity == 'Yearly'):
@@ -117,7 +120,7 @@ if(lt =='temporal analysis'):
         if (cat == 'Peer reviewed/not'):
             df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
         else:
-            df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['Wuhan', 'Italy','China','California','New York','China_all','USA'].agg('sum').reset_index('publish_date')
+            df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))[ 'Italy','China','US','Canada'].agg('sum').reset_index('publish_date')
         df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
         df_yearly = df_yearly.set_index('publish_date')
         df_d_yearly = pd.DataFrame(index=df_yearly.index)
@@ -141,7 +144,7 @@ if(lt =='temporal analysis'):
         else:
             df_monthly = df_ao.loc[df_ao['publish_date'].dt.date >= start_month]
             df_monthly = df_monthly.loc[df_monthly['publish_date'].dt.date <= end_month]
-            df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Wuhan', 'Italy', 'China', 'California','New York','China_all','USA'].agg('sum').reset_index('publish_date')
+            df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Italy','China','US','Canada'].agg('sum').reset_index('publish_date')
 
         df_monthly = df_monthly.set_index('publish_date')
         df_d_monthly = pd.DataFrame(index=df_monthly.index)
@@ -165,7 +168,7 @@ if(lt =='temporal analysis'):
         else:
             df_weekly = df_ao.loc[df_ao['publish_date'].dt.date >= start_week]
             df_weekly = df_weekly.loc[df_weekly['publish_date'].dt.date <= end_week]
-            df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Wuhan', 'Italy', 'China', 'California','New York','China_all','USA'].agg(
+            df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Italy','China','US','Canada'].agg(
                 'sum').reset_index('publish_date')
 
         df_weekly = df_weekly.set_index('publish_date')
