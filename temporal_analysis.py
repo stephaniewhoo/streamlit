@@ -41,11 +41,26 @@ def load_length():
     df_l = pd.read_csv(dfl_url, error_bad_lines=False)
     return df_l
 
+def load_area():
+    dfa_url = 'https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/area_cord19.csv'
+    df_a = pd.read_csv(dfa_url, error_bad_lines=False)
+    df_a['publish_date'] = pd.to_datetime(df_a['publish_date'])
+    return df_a
+
+def load_area_only():
+    dfa_url = 'https://raw.githubusercontent.com/stephaniewhoo/streamlit/master/area_cord19.csv'
+    df_ao = pd.read_csv(dfa_url, error_bad_lines=False)
+    df_ao = df_ao.loc[df_ao['publish_date'].str.len() > 4]
+    df_ao['publish_date'] = pd.to_datetime(df_ao['publish_date'])
+    return df_ao
+
 df = load_all()
 df_only_month = load()
 df_a = load_country()
 df_ao = load_country_only()
 df_l = load_length()
+df_area = load_area()
+df_area_only = load_area_only()
 
 lt = st.sidebar.selectbox('Do you want to see temporal analysis or length outlier analysis?',
                           ('temporal analysis','length outlier analysis')
@@ -72,10 +87,18 @@ if (lt == 'temporal analysis'):
         ABM = st.checkbox('ArXiv/BioRxiv/MedExiv')
     elif (cat == 'area'):
         if (ac == 'area'):
-            wuhan = st.checkbox('Wuhan', value=True)
-            italy = st.checkbox('Italy', value=True)
-            ca = st.checkbox('California', value=True)
-            ny = st.checkbox('New York', value=True)
+            cp = st.checkbox('Canadian Province', value=False)
+            uss = st.checkbox('US State', value=False)
+            if(cp):
+                on = st.checkbox('ON,CA', value = True)
+                qc = st.checkbox('QC,CA', value = True)
+                bc = st.checkbox('BC,CA', value = True)
+                otca = st.checkbox('Others,CA', value = False)
+            if(uss):
+                caus = st.checkbox('CA,US', value = True)
+                ny = st.checkbox('NY,US', value = True)
+                otus = st.checkbox('others,US', value = False)
+                #PEI, AB, MB, NS, NL, Saskatchewan, NB, Nunavut, Yukon
         elif(ac == 'country'):
             italy = st.checkbox('Italy', value=True)
             china = st.checkbox('China', value=True)
@@ -90,14 +113,25 @@ def selected_df(df_new, df_old):
             df_new['ArXiv/BioRxiv/MedExiv'] = df_old['ArXiv/BioRxiv/MedExiv']
     elif (cat == 'area'):
         if (ac == 'area'):
-            if (wuhan):
-                df_new['Wuhan'] = df_old['Wuhan']
-            if (italy):
-                df_new['Italy'] = df_old['Italy']
-            if (ca):
-                df_new['California'] = df_old['California']
-            if (ny):
-                df_new['New York'] = df_old['New York']
+            if(cp):
+                if (on):
+                    df_new['ON'] = df_old['ON']
+                if (qc):
+                    df_new['QC'] = df_old['QC']
+                if (bc):
+                    df_new['BC'] = df_old['BC']
+                if (otca):
+                    cols = ['PEI', 'AB', 'MB', 'NS', 'NL', 'Saskatchewan', 'NB', 'Nunavut', 'Yukon']
+                    df_new[cols] = df_old[cols]
+            if(uss):
+                if (caus):
+                    df_new['CA'] = df_old['CA']
+                if (ny):
+                    df_new['NY'] = df_old['NY']
+                if (otus):
+                    cols = ['IL','MD','MS','OR','PA','SD','AK','HI','NJ','GA','AL','MA','TX','ND','MT','ID','SC','NE','CT','AR','FL','VT','CO','WA','IN','LA','AZ','NV','NM','DE','MN','ME','NH','WY','MI','UT','VA','RI','OH','WV','WI','IA','MO','KY','OK']
+                    df_new[cols] = df_old[cols]
+
         elif (ac == 'country'):
             if(china):
                 df_new['China'] = df_old['China']
@@ -116,11 +150,15 @@ if(lt =='temporal analysis'):
             df_yearly = df.loc[(df['publish_date'].dt.year >= start_year) & (df['publish_date'].dt.year <= end_year)]
         else:
             start_year, end_year = st.slider("Select year Range:", 1992, 2021, (2003, 2020), 1)
-            df_yearly = df_a.loc[(df_a['publish_date'].dt.year >= start_year) & (df_a['publish_date'].dt.year <= end_year)]
+            if(ac == 'country'):
+                df_yearly = df_a.loc[(df_a['publish_date'].dt.year >= start_year) & (df_a['publish_date'].dt.year <= end_year)]
+            else:
+                df_yearly = df_area.loc[(df_area['publish_date'].dt.year >= start_year) & (df_area['publish_date'].dt.year <= end_year)]
         if (cat == 'Peer reviewed/not'):
             df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))['peer_reviewed','ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
         else:
-            df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y'))[ 'Italy','China','US','Canada'].agg('sum').reset_index('publish_date')
+            df_yearly = df_yearly.groupby(pd.Grouper(key='publish_date', freq='Y')).agg('sum').reset_index('publish_date')
+
         df_yearly['publish_date'] = df_yearly['publish_date'].dt.year
         df_yearly = df_yearly.set_index('publish_date')
         df_d_yearly = pd.DataFrame(index=df_yearly.index)
@@ -142,10 +180,12 @@ if(lt =='temporal analysis'):
             df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))[
                 'peer_reviewed', 'ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
         else:
-            df_monthly = df_ao.loc[df_ao['publish_date'].dt.date >= start_month]
+            if(ac == 'country'):
+                df_monthly = df_ao.loc[df_ao['publish_date'].dt.date >= start_month]
+            else:
+                df_monthly = df_area_only.loc[df_area_only['publish_date'].dt.date >= start_month]
             df_monthly = df_monthly.loc[df_monthly['publish_date'].dt.date <= end_month]
-            df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M'))['Italy','China','US','Canada'].agg('sum').reset_index('publish_date')
-
+            df_monthly = df_monthly.groupby(pd.Grouper(key='publish_date', freq='M')).agg('sum').reset_index('publish_date')
         df_monthly = df_monthly.set_index('publish_date')
         df_d_monthly = pd.DataFrame(index=df_monthly.index)
         selected_df(df_d_monthly, df_monthly)
@@ -166,10 +206,12 @@ if(lt =='temporal analysis'):
             df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))[
                 'peer_reviewed', 'ArXiv/BioRxiv/MedExiv'].agg('sum').reset_index('publish_date')
         else:
-            df_weekly = df_ao.loc[df_ao['publish_date'].dt.date >= start_week]
+            if (ac == 'country'):
+                df_weekly = df_ao.loc[df_ao['publish_date'].dt.date >= start_week]
+            else:
+                df_weekly = df_area_only.loc[df_area_only['publish_date'].dt.date >= start_week]
             df_weekly = df_weekly.loc[df_weekly['publish_date'].dt.date <= end_week]
-            df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W'))['Italy','China','US','Canada'].agg(
-                'sum').reset_index('publish_date')
+            df_weekly = df_weekly.groupby(pd.Grouper(key='publish_date', freq='W')).agg('sum').reset_index('publish_date')
 
         df_weekly = df_weekly.set_index('publish_date')
         df_d_weekly = pd.DataFrame(index=df_weekly.index)
@@ -188,7 +230,10 @@ if(lt =='temporal analysis'):
             df_daily = df_only_month.loc[df_only_month['publish_date'].dt.date >= start_day]
             df_daily = df_daily.loc[df_daily['publish_date'].dt.date <= end_day]
         else:
-            df_daily = df_ao.loc[df_ao['publish_date'].dt.date >= start_day]
+            if(ac == 'country'):
+                df_daily = df_ao.loc[df_ao['publish_date'].dt.date >= start_day]
+            else:
+                df_daily = df_area_only.loc[df_area_only['publish_date'].dt.date >= start_day]
             df_daily = df_daily.loc[df_daily['publish_date'].dt.date <= end_day]
         df_daily = df_daily.set_index('publish_date')
         df_d_daily = pd.DataFrame(index=df_daily.index)
